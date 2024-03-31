@@ -83,10 +83,26 @@ static void readSongsFromFile(struct SList* sl, const char* filename) {
 		return;
 	}
 
+	int numSongs = 0;
+	if (fscanf_s(file, "%d\n", &numSongs) != 1) {
+		printf("\nFailed to read the number of songs.");
+		fclose(file);
+		return;
+	}
+
 	char buffer[256];
-	while (fgets(buffer, sizeof(buffer), file)) {
-		struct Song song {};
-		if (sscanf_s(buffer, "%30[^#]#%25[^#]#%25[^#]#%d", song.NameSong, (unsigned)_countof(song.NameSong), song.Musician, (unsigned)_countof(song.Musician), song.Singer, (unsigned)_countof(song.Singer), &song.Length) == 4) {
+	for (int i = 0; i < numSongs; ++i) {
+		if (!fgets(buffer, sizeof(buffer), file)) {
+			printf("\nFailed to read song %d, possibly fewer songs than expected.", i + 1);
+			break;
+		}
+
+		struct Song song = { 0 };
+		if (sscanf_s(buffer, "%30[^#]#%25[^#]#%25[^#]#%d",
+			song.NameSong, (unsigned)_countof(song.NameSong),
+			song.Musician, (unsigned)_countof(song.Musician),
+			song.Singer, (unsigned)_countof(song.Singer),
+			&song.Length) == 4) {
 			struct SNode* node = create_SNode(&song);
 			addSNodeToList(sl, node);
 		}
